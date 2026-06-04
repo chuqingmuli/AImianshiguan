@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import PhoneCall from '@/components/common/PhoneCall'
+import dynamic from 'next/dynamic'
+
+const PhoneCall = dynamic(() => import('@/components/common/PhoneCall'), {
+  ssr: false,
+  loading: () => <div className="p-4 text-center text-gray-500">加载中...</div>
+})
 
 // Coze配置
 const COZE_PAT = process.env.NEXT_PUBLIC_COZE_PAT || 'pat_3gB2OKTT48jvYxW1ZP2yzjSr4q0j50w6BsRHS4xDMPBVqJYopaNItH8nvqsLdfT2'

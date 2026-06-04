@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX } from 'lucide-react'
-import { WsChatClient, WebsocketsEventType, RoleType } from '@coze/api/ws-tools'
 
 interface PhoneCallProps {
   botId: string
@@ -10,17 +9,46 @@ interface PhoneCallProps {
   className?: string
 }
 
+type WsChatClientType = any
+
 export default function PhoneCall({ botId, pat, className = '' }: PhoneCallProps) {
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isMuted, setIsMuted] = useState(false)
   const [isSpeakerOn, setIsSpeakerOn] = useState(true)
-  const clientRef = useRef<WsChatClient | null>(null)
+  const clientRef = useRef<WsChatClientType | null>(null)
   // 存储音频元素引用
   const audioElementRef = useRef<HTMLAudioElement | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const cozeModuleRef = useRef<any>(null)
+
+  // 动态加载 coze/api 模块
+  useEffect(() => {
+    let mounted = true
+    const loadModule = async () => {
+      try {
+        if (!cozeModuleRef.current) {
+          const module = await import('@coze/api/ws-tools')
+          if (mounted) {
+            cozeModuleRef.current = module
+            setIsLoaded(true)
+          }
+        }
+      } catch (err) {
+        console.error('加载 Coze 模块失败:', err)
+        if (mounted) {
+          setError('加载通话模块失败，请刷新页面试试')
+        }
+      }
+    }
+    loadModule()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -50,6 +78,10 @@ export default function PhoneCall({ botId, pat, className = '' }: PhoneCallProps
   }, [])
 
   const startCall = async () => {
+    if (!isLoaded || !cozeModuleRef.current) {
+      setError('模块正在加载，请稍后再试')
+      return
+    }
     if (!botId || !pat) {
       setError('缺少Bot ID或PAT配置')
       return
@@ -66,6 +98,7 @@ export default function PhoneCall({ botId, pat, className = '' }: PhoneCallProps
         clientRef.current = null
       }
 
+      const { WsChatClient } = cozeModuleRef.current
       const client = new WsChatClient({
         botId: botId,
         token: pat,
@@ -184,7 +217,12 @@ export default function PhoneCall({ botId, pat, className = '' }: PhoneCallProps
   return (
     <div className={`flex flex-col items-center gap-3 ${className}`}>
       <div className="flex items-center gap-2">
-        {isConnected ? (
+        {!isLoaded ? (
+          <div className="p-4 text-center text-gray-500">
+            <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-2" />
+            正在加载通话模块...
+          </div>
+        ) : isConnected ? (
           <>
             <button
               onClick={toggleMute}
@@ -248,7 +286,11 @@ export default function PhoneCall({ botId, pat, className = '' }: PhoneCallProps
         </div>
       )}
 
-      {!isConnected && !isConnecting && (
+      {!isLoaded && !error && (
+        <div className="text-xs text-gray-500">正在准备通话模块...</div>
+      )}
+
+      {isLoaded && !isConnected && !isConnecting && !error && (
         <div className="text-xs text-gray-500">点击开始与AI通话</div>
       )}
     </div>
