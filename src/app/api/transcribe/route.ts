@@ -19,8 +19,7 @@ export async function POST(request: NextRequest) {
     // 调用OpenAI Whisper API
     const response = await axios.post('https://api.openai.com/v1/audio/transcriptions', transcribeFormData, {
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        ...transcribeFormData.getHeaders()
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       }
     })
 

@@ -234,7 +234,7 @@ export async function POST(
     })
     
     // 调用智能体
-    const aiResponse = await callCozeAgent(content, interviewId, interview.type, metadata)
+    const aiResponse = await callCozeAgent(content, interviewId, interview.type as 'java' | 'web', metadata)
 
     // 处理AI响应（可能是字符串或对象）
     let aiContent = ''

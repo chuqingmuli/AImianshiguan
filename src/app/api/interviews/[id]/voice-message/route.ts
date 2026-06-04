@@ -180,7 +180,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     })
 
     // 2. 调用Coze智能体处理文本
-    const aiResponse = await callCozeAgent(transcription, interviewId, interview.type)
+    const aiResponse = await callCozeAgent(transcription, interviewId, interview.type as 'java' | 'web')
 
     // 创建助理消息记录
     const assistantMessage = await prisma.message.create({
