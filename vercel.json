@@ -13,6 +13,5 @@
       "maxDuration": 60
     }
   },
-  "regions": ["iad1", "fra1", "sfo1"],
   "version": 2
 }
