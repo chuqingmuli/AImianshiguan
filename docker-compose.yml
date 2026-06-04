@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Next.js应用服务
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=file:/app/data/mianshiguan.db
+      - NEXTAUTH_URL=http://localhost:3001
+      - NEXTAUTH_SECRET=mianshiguan-secret-key-2024-change-in-production
+      - COZE_API_KEY=${COZE_API_KEY}
+      - COZE_BOT_ID_JAVA=${COZE_BOT_ID_JAVA}
+      - COZE_BOT_ID_WEB=${COZE_BOT_ID_WEB}
+      - LOG_LEVEL=debug
+    volumes:
+      - ./data:/app/data
+      - ./prisma:/app/prisma
+      - ./.env:/app/.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - mianshiguan-network
+
+  # 数据库迁移服务
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run db:push
+    environment:
+      - DATABASE_URL=file:/app/data/mianshiguan.db
+    volumes:
+      - ./data:/app/data
+      - ./prisma:/app/prisma
+    depends_on:
+      - app
+    networks:
+      - mianshiguan-network
+
+networks:
+  mianshiguan-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local

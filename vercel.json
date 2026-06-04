@@ -1,0 +1,55 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm ci",
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "@DATABASE_URL",
+    "NEXTAUTH_URL": "@NEXTAUTH_URL",
+    "NEXTAUTH_SECRET": "@NEXTAUTH_SECRET",
+    "COZE_API_KEY": "@COZE_API_KEY",
+    "COZE_BOT_ID_JAVA": "@COZE_BOT_ID_JAVA",
+    "COZE_BOT_ID_WEB": "@COZE_BOT_ID_WEB",
+    "LOG_LEVEL": "info"
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "runtime": "@vercel/node@3.0.0",
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "0 0 * * *"
+    }
+  ],
+  "regions": ["iad1", "fra1", "sfo1"],
+  "version": 2
+}
